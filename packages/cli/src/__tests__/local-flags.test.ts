@@ -82,6 +82,23 @@ describe("--local flag middleware", () => {
 		}
 	);
 
+	// `cf dev` disables camel-case expansion, so only the kebab-case key exists.
+	it.each([
+		["separate value", ["--persist-to", "state"]],
+		["inline value", ["--persist-to=state"]],
+		["empty value", ["--persist-to", ""]],
+	] as const)("rejects --persist-to for cf dev (%s)", async (_name, args) => {
+		await expect(runCf(["dev", ...args])).rejects.toThrow(
+			"--persist-to is not supported by cf dev."
+		);
+	});
+
+	it("allows --persist-to with cf dev help", async () => {
+		await expect(
+			runCf(["dev", "--persist-to", "state", "--help"])
+		).resolves.toEqual({ exitCode: 0 });
+	});
+
 	it("leaves unknown commands with --local to yargs", async () => {
 		await expect(runCf(["typoo", "--local"])).rejects.toThrow(
 			"Unknown command: typoo"
